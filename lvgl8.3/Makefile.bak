@@ -1,0 +1,59 @@
+
+CC = arm-linux-gcc
+LVGL_DIR_NAME ?= lvgl
+LVGL_DIR ?= ${shell pwd}
+
+# 优化 CFLAGS，确保包含 mycode
+CFLAGS ?= -O3 -g0 -I$(LVGL_DIR)/ -I$(LVGL_DIR)/mycode/ -I/freetype-2.13.3/include/ -I$(LVGL_DIR)/project/inc -Wall -Wextra -Wno-unused-parameter \
+          -Wno-missing-field-initializers -Wtype-limits -Wsizeof-pointer-memaccess \
+          -Wno-format-nonliteral -Wpointer-arith -Wno-cast-qual -Wmissing-prototypes \
+          -Wunreachable-code -Wno-switch-default -Wreturn-type -Wmultichar \
+          -Wno-discarded-qualifiers -Wformat-security -Wno-ignored-qualifiers -Wno-sign-compare
+
+LDFLAGS = -lm -L/freetype-2.13.3/build -lfreetype
+BIN = demo
+BUILD_DIR = build
+
+# Collect the files to compile
+MAINSRC = ./main.c
+
+# 包含官方 mk 文件 (这两个文件会自动扫描 lvgl 和 drivers 下的 .c 并加入 CSRCS)
+include $(LVGL_DIR)/lvgl/lvgl.mk
+include $(LVGL_DIR)/lv_drivers/lv_drivers.mk
+
+# 额外添加你自己的代码
+CSRCS += $(LVGL_DIR)/mouse_cursor_icon.c
+CSRCS += $(shell find $(LVGL_DIR)/mycode/ -name "*.c")  
+CSRCS += $(shell find $(LVGL_DIR)/project/src/ -name "*.c")
+
+# 【关键点 1】：删除了原本报错的 lvgl/src/font/*.c 那行，因为 lvgl.mk 已经包含了它
+# 【关键点 2】：去重，防止重复定义
+CSRCS := $(sort $(CSRCS))
+
+OBJEXT ?= .o
+
+# Redirect object files to BUILD_DIR
+AOBJS = $(addprefix $(BUILD_DIR)/, $(ASRCS:.S=$(OBJEXT)))
+COBJS = $(addprefix $(BUILD_DIR)/, $(CSRCS:.c=$(OBJEXT)))
+MAINOBJ = $(addprefix $(BUILD_DIR)/, $(MAINSRC:.c=$(OBJEXT)))
+
+all: default
+
+# 编译规则 - Assembly
+$(BUILD_DIR)/%.o: %.S
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo "CC $<"
+
+# 编译规则 - C Source
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo "CC $<"
+
+default: $(AOBJS) $(COBJS) $(MAINOBJ)
+	$(CC) -o $(BIN) $(MAINOBJ) $(AOBJS) $(COBJS) $(LDFLAGS)
+
+clean: 
+	rm -f $(BIN)
+	rm -rf $(BUILD_DIR)

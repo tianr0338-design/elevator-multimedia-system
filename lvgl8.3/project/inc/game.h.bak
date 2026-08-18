@@ -1,0 +1,9 @@
+#ifndef GAME_H
+#define GAME_H
+
+#include "lvgl/lvgl.h"
+
+// Public functions
+void create_game_screen(void);//创造游戏界面
+
+#endif

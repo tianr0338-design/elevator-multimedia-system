@@ -64,3 +64,4 @@ lvgl8.3/project/bin/
 *.log
 tmp/
 cache/
+.workbuddy/

@@ -144,9 +144,8 @@ gcc server.c cJSON.c -o server -lpthread
 
 ---
 
-## 7. 备注 / 待确认
+## 7. 后续优化方向
 
-1. **活动界面是 `lift_client` 还是 `project`？** 默认 `Makefile` 只编 `lift_client`；`project/` 未纳入，需确认哪套为正式界面，避免重复维护。
-2. **FreeType 路径写死** 为 `/freetype-2.13.3/...`，换机/换版本时需同步修改 `Makefile`。
-3. **`"A:"` 文件系统** 的盘符后端挂载点（素材根目录）在初始化代码中注册，部署时需保证该路径存在且包含 `logo.png`、`kaiji.gif` 等素材。
-4. 尚未创建首次提交（`git commit`）。
+1. **统一活动界面**：`Makefile` 当前默认编译 `lift_client`（正式主界面），`project/` 作为备选 UI，后续计划合并或移除，减少重复维护。
+2. **FreeType 路径参数化**：当前在 `Makefile` 中按 `/freetype-2.13.3/...` 绝对路径链接，计划改为相对路径或环境变量，提升跨环境可移植性。
+3. **素材路径配置化**：`"A:"` 文件系统盘符的挂载点（素材根目录）在初始化代码中注册，部署时需保证该路径存在且包含 `logo.png`、`kaiji.gif` 等资源。
